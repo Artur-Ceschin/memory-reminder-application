@@ -13,8 +13,18 @@ import NLWLogo from './src/assets/nlw-logo.svg'
 
 import { BaiJamjuree_700Bold } from '@expo-google-fonts/bai-jamjuree'
 import { styled } from 'nativewind'
+import { useAuthRequest } from 'expo-auth-session/build/providers/Google'
+import { makeRedirectUri } from 'expo-auth-session'
+import { useEffect } from 'react'
 
 const StyledStripes = styled(Stripes)
+
+const discovery = {
+  authorizationEndpoint: 'https://github.com/login/oauth/authorize',
+  tokenEndpoint: 'https://github.com/login/oauth/access_token',
+  revocationEndpoint:
+    'https://github.com/settings/connections/applications/6115a03520b2a01179c5',
+}
 
 export default function App() {
   const [hasLoadedFonts] = useFonts({
@@ -22,6 +32,34 @@ export default function App() {
     Roboto_700Bold,
     BaiJamjuree_700Bold,
   })
+
+  const [, response, signInWithGithub] = useAuthRequest(
+    {
+      clientId: '6115a03520b2a01179c5',
+      scopes: ['identity'],
+      redirectUri: makeRedirectUri({
+        scheme: 'nlwspacetime',
+      }),
+    },
+    discovery,
+  )
+
+  useEffect(() => {
+    console.log(
+      makeRedirectUri({
+        scheme: 'nlwspacetime',
+      }),
+    )
+
+    console.log('response =>', response)
+    if (response?.type === 'success') {
+      const { code } = response.params
+
+      console.log(code)
+
+      // handleGithubOAuthCode(code)
+    }
+  }, [response])
 
   if (!hasLoadedFonts) {
     return null
@@ -52,7 +90,10 @@ export default function App() {
           activeOpacity={0.7}
           className="rounded-full bg-green-500 px-5 py-2"
         >
-          <Text className="font-alt text-sm uppercase text-black">
+          <Text
+            className="font-alt text-sm uppercase text-black"
+            onPress={() => signInWithGithub()}
+          >
             Cadastrar Lembrança
           </Text>
         </TouchableOpacity>
